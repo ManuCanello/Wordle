@@ -7,8 +7,8 @@ import java.util.Scanner;
 
 public class Worlde{
 
-    private String palabra_adivinar;
-    private String array_palabras[] = new String[5];
+    private final String palabra_adivinar[];
+    private final String array_palabras[] = new String[5];
     private int intento = 0;
 
     public static void main(String[] args) {
@@ -16,6 +16,7 @@ public class Worlde{
     }
 
     public Worlde(){
+        this.palabra_adivinar = new String[5];
         preparJuego();
         start();
     }
@@ -33,6 +34,7 @@ public class Worlde{
             
             palabra_ingresada = pedirPalabra();
             reemplazarPalbraArray(palabra_ingresada);
+            System.out.println(ganador(palabra_ingresada));
 
             if(this.intento == 4)
                 continuar = false;
@@ -50,7 +52,7 @@ public class Worlde{
         if(ganador){
             System.out.println("Haz ganado");
         }else{
-            System.out.println(palabra_adivinar);
+            System.out.println(palabraString(palabra_adivinar));
         }
         
     }
@@ -74,7 +76,10 @@ public class Worlde{
                     p = br.readLine();
                     p = p.toLowerCase();
                     p = p.trim();
-                    palabra_adivinar = p;
+                    for(int i=0;i<palabra_adivinar.length;i++){
+                        palabra_adivinar[i] = String.valueOf(p.charAt(i));
+                    }
+                        
                     break;
                 }
 
@@ -120,7 +125,7 @@ public class Worlde{
             System.out.println(this.array_palabras[i]);
         }
 
-        System.out.println(palabra_adivinar);
+        
     }
 
     private void sumarIntento(){
@@ -128,25 +133,38 @@ public class Worlde{
     }
 
     private boolean ganador(String palabra){
-        return palabra.equals(this.palabra_adivinar);
+        for(int i=0;i<palabra_adivinar.length;i++){
+            if(!palabra_adivinar[i].equals(String.valueOf(palabra.charAt(i))))
+                return false;
+        }
+
+        return true;
     }
 
     private void reemplazarPalbraArray(String palabra){
-        String palabra_espacios = "",aux = palabra_adivinar;
+        String[] palabra_espacios = new String[5];
+        String[] aux = new String[5];
+        inicializarArray(palabra_espacios, palabra);
+        copiarArray(aux, palabra_adivinar);
+
         for(int i=0;i<palabra.length();i++){
-            if(palabra.charAt(i) == palabra_adivinar.charAt(i)){
-                palabra_espacios += cambiarColorLetra(palabra,1,i)+ " " + "\u001B[0m";
-            }else{
-                if(existe(palabra.charAt(i),palabra_adivinar)){
-                    palabra_espacios += cambiarColorLetra(palabra,0,i)+ " "+"\u001B[0m";
-                    
-                }else
-                    palabra_espacios += cambiarColorLetra(palabra,2,i)+ " "+"\u001B[0m";
+            if(String.valueOf(palabra.charAt(i)).equals(palabra_adivinar[i])){
+                palabra_espacios[i] = cambiarColorLetra(palabra,1,i)+ " " + "\u001B[0m";
+                censurarLetra(i);
             }
         }
-
-        this.array_palabras[intento] = palabra_espacios;
-        palabra_adivinar = aux;
+        
+        for(int i=0;i<palabra.length();i++){
+            if(existe(String.valueOf(palabra.charAt(i)),palabraString(palabra_adivinar)))
+                palabra_espacios[i] = cambiarColorLetra(palabra,0,i)+ " " + "\u001B[0m";
+            else if(String.valueOf(palabra.charAt(i)).equals("!")){
+                palabra_espacios[i] = cambiarColorLetra(palabra,2,i)+ " " + "\u001B[0m";
+            }
+        }  
+        
+        this.array_palabras[intento] = palabraString(palabra_espacios);
+        copiarArray(palabra_adivinar, aux);
+    
     }
 
     private String pedirPalabra(){
@@ -168,9 +186,29 @@ public class Worlde{
         return true;
     }
 
-    private boolean existe(char letra, String palabra){
+    private void censurarLetra(int i){
+        palabra_adivinar[i] = "!";
+    }
+
+    private String palabraString(String[] array){
+        String palabra = "";
+        for (String p: array) {
+            palabra += p;
+        }
+
+        return palabra;
+    }
+
+    private void copiarArray(String a1[], String a2[]){
+        System.arraycopy(a2, 0, a1, 0, a1.length);
+    }
+
+    private boolean existe(String letra, String palabra){
+        letra = letra.trim();
+        palabra = palabra.trim();
         for(int i=0;i<palabra.length();i++){
-            if(letra == palabra.charAt(i)){
+            if(letra.equals(String.valueOf(palabra.charAt(i)))){
+                censurarLetra(i);
                 return true;
             }
         }
@@ -178,6 +216,13 @@ public class Worlde{
         return false;
     }
 
-  
+    private void inicializarArray(String[] array,String palabra){
+        for(int i=0;i<array.length;i++){
+            array[i] = String.valueOf(palabra.charAt(i)) + " ";
+        }
+    }
+
+    
+
 
 }
